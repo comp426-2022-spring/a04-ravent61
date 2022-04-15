@@ -1,7 +1,6 @@
 //log help message is user type[es server.js
 
 var argv = require('minimist')(process.argv.slice(2));
-console.log(argv);
 
 const help_message = "\n" +
 "  --port	Set the port number for the server to listen on. Must be an integer\n" +
@@ -25,20 +24,20 @@ if (argv['help']) {
 "use strict";
 
 const Database = require('better-sqlite3');
-const db = new Database('user.db');
+const db = new Database('log.db');
 const stmt = db.prepare(`
-    SELECT name FROM sqlite_master WHERE type='table' and name='userinfo';`
+    SELECT name FROM sqlite_master WHERE type='table' and name='logdata1';`
     );
 let row = stmt.get();
 if (row == undefined) {
     const sqlInit = `
-        CREATE TABLE logdata ( 
+        CREATE TABLE logdata1 ( 
             remoteaddr TEXT,
             remoteuser TEXT,
             time TEXT,
             method TEXT,
             url TEXT,
-            protocol TEXT
+            protocol TEXT,
             httpversion TEXT,
             status INTEGER,
             referer TEXT,
