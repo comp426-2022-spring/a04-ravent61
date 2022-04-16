@@ -29,7 +29,7 @@ app.use(express.urlencoded({ extended: true}));
 app.use(express.json());
 
 // Server port
-var HTTP_PORT = 5555 
+var HTTP_PORT = argv['port'] || 5555
 
 // Start server
 const server = app.listen(HTTP_PORT, () => {
