@@ -24,7 +24,7 @@ if (argv['help']) {
 var express = require("express")
 var app = express()
 
-const db = require("/Users/raventaylor/COMP 426/a04-ravent61/database.js")
+const db = require("./database.js")
 app.use(express.urlencoded({ extended: true}));
 app.use(express.json());
 
