@@ -1,7 +1,7 @@
 //log help message is user type[es server.js
 
 var argv = require('minimist')(process.argv.slice(2));
-console.log(argv);
+//console.log(argv);
 
 const help_message = "\n" +
 "  --port	Set the port number for the server to listen on. Must be an integer\n" +
