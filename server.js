@@ -29,45 +29,48 @@ app.use(express.urlencoded({ extended: true}));
 app.use(express.json());
 
 // Server port
-var HTTP_PORT = 50700 
+var HTTP_PORT = 5555 || argv['port']
+
 // Start server
 const server = app.listen(HTTP_PORT, () => {
    console.log("Server running on port %PORT%".replace("%PORT%",HTTP_PORT))
 });
 
+app.use( (req, res, next) => {
+    let logdata = {
+        remoteaddr: req.ip,
+        remoteuser: req.user,
+        time: Date.now(),
+        method: req.method,
+        url: req.url,
+        protocol: req.protocol,
+        httpversion: req.httpVersion,
+        status: res.statusCode,
+        referer: req.headers['referer'],
+        useragent: req.headers['user-agent']
+    }
+    //console.log(logdata.httpversion)
+    const stmt = db.prepare('INSERT INTO accesslog (remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
+    //res.status(200).json(info)
+    next()
+})
+//create endpoints when --debug is true
 if (argv['debug']) {
-    app.use( (req, res, next) => {
-        let logdata = {
-            remoteaddr: req.ip,
-            remoteuser: req.user,
-            time: Date.now(),
-            method: req.method,
-            url: req.url,
-            protocol: req.protocol,
-            httpversion: req.httpVersion,
-            status: res.statusCode,
-            referer: req.headers['referer'],
-            useragent: req.headers['user-agent']
-        }
-        //console.log(logdata.httpversion)
-        const stmt = db.prepare('INSERT INTO logdata1 (remoteaddr, remoteuser, time, method, url, protocol, httpversion, status, referer, useragent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-        const info = stmt.run(logdata.remoteaddr, logdata.remoteuser, logdata.time, logdata.method, logdata.url, logdata.protocol, logdata.httpversion, logdata.status, logdata.referer, logdata.useragent)
-        //res.status(200).json(info)
-        next()
-    })
 
     app.get("/app/error", (req, res) => {
         throw new Error('BROKEN')
     })
 
     app.get ("/app/log/access", (req, res) => {
-        const stmt = db.prepare("SELECT * FROM logdata1").all()
+        const stmt = db.prepare("SELECT * FROM accesslog").all()
         res.status(200).json(stmt)
     })
-} else {
+} 
+if (argv['log']) {
     // Use morgan for logging to files
     // Create a write stream to append (flags: 'a') to a file
-    const WRITESTREAM = fs.createWriteStream('FILE', { flags: 'a' })
+    const accessLogStream = fs.createWriteStream('access.log', { flags: 'a' })
     // Set up the access logging middleware
-    app.use(morgan('FORMAT', { stream: WRITESTREAM }))
+    app.use(morgan('combined', { stream: accessLogStream }))
 }
